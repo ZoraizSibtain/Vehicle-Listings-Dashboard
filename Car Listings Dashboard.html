@@ -1,0 +1,598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Car Listings Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #07090f;
+  --surface: #0c1019;
+  --surface2: #111827;
+  --surface3: #1a2438;
+  --border: rgba(148,163,184,0.09);
+  --border2: rgba(148,163,184,0.15);
+  --accent: #3b82f6;
+  --accent-glow: rgba(59,130,246,0.18);
+  --cyan: #06b6d4;
+  --green: #10b981;
+  --yellow: #f59e0b;
+  --red: #ef4444;
+  --text: #e8edf5;
+  --muted: #5a6a85;
+  --muted2: #8899b4;
+  --r: 10px;
+}
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 13px;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+#root { display: flex; flex-direction: column; min-height: 100vh; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+/* Header */
+.header {
+  position: sticky; top: 0; z-index: 200;
+  background: rgba(7,9,15,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 32px;
+  height: 60px;
+  display: flex; align-items: center; justify-content: space-between; gap: 20px;
+}
+.header-brand { display: flex; align-items: center; gap: 12px; }
+.header-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, #1d4ed8, #06b6d4);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.header-title { font-family: 'Space Grotesk', sans-serif; font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.02em; }
+.header-sub { font-size: 11px; color: var(--muted); margin-top: 1px; }
+.header-actions { display: flex; gap: 8px; align-items: center; }
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s; border: none; outline: none;
+  white-space: nowrap;
+}
+.btn-ghost {
+  background: transparent; border: 1px solid var(--border2);
+  color: var(--muted2);
+}
+.btn-ghost:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+.btn-primary {
+  background: var(--accent); color: #fff;
+  box-shadow: 0 0 20px rgba(59,130,246,0.3);
+}
+.btn-primary:hover { background: #2563eb; box-shadow: 0 0 28px rgba(59,130,246,0.45); }
+
+/* Main layout */
+.main { flex: 1; max-width: 1600px; width: 100%; margin: 0 auto; padding: 28px 32px; display: flex; flex-direction: column; gap: 20px; }
+
+/* KPI Cards */
+.kpi-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+.kpi-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 20px 22px;
+  position: relative; overflow: hidden;
+  transition: border-color 0.2s, transform 0.2s;
+  cursor: default;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(59,130,246,0.4), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.kpi-card:hover { border-color: var(--border2); transform: translateY(-1px); }
+.kpi-card:hover::before { opacity: 1; }
+.kpi-label { font-size: 11px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.kpi-value { font-family: 'Space Grotesk', sans-serif; font-size: 28px; font-weight: 700; color: var(--text); line-height: 1.15; margin-top: 8px; letter-spacing: -0.03em; }
+.kpi-value.green { color: var(--green); }
+.kpi-value.red { color: var(--red); }
+.kpi-sub { font-size: 11px; color: var(--muted); margin-top: 5px; }
+.kpi-badge {
+  position: absolute; top: 18px; right: 18px;
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 15px; opacity: 0.6;
+}
+
+/* Charts row */
+.charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.chart-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 22px 24px;
+}
+.chart-title { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+.chart-sub { font-size: 11px; color: var(--muted); margin-bottom: 18px; }
+
+/* Filters */
+.filters-row {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 14px 20px;
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+}
+.filter-group { display: flex; flex-direction: column; gap: 4px; }
+.filter-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--muted); }
+.filter-input, .filter-select {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 7px;
+  color: var(--text); font-size: 12px; padding: 7px 11px;
+  outline: none; transition: border-color 0.15s;
+  font-family: inherit;
+}
+.filter-input:focus, .filter-select:focus { border-color: var(--accent); }
+.filter-input::placeholder { color: var(--muted); }
+.filter-select { appearance: none; -webkit-appearance: none; cursor: pointer; padding-right: 28px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a6a85'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 10px center;
+}
+.filter-input.search { min-width: 220px; }
+.filter-divider { width: 1px; height: 32px; background: var(--border); margin: 0 4px; }
+.filter-count { margin-left: auto; font-size: 12px; color: var(--muted); white-space: nowrap; }
+.filter-count strong { color: var(--text); font-weight: 600; }
+.btn-clear { padding: 7px 12px; font-size: 12px; }
+
+/* Table */
+.table-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+.table-header {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 16px 22px;
+  border-bottom: 1px solid var(--border);
+}
+.table-header-title { font-family: 'Space Grotesk', sans-serif; font-size: 13px; font-weight: 600; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 11px 16px; text-align: left;
+  font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--muted); background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap; cursor: pointer; user-select: none;
+}
+thead th:hover { color: var(--text); }
+thead th.sorted { color: var(--accent); }
+tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--surface2); }
+tbody td { padding: 12px 16px; font-size: 12px; color: var(--muted2); vertical-align: middle; }
+tbody td.car-name { color: var(--text); font-weight: 500; }
+tbody td.price { font-family: 'Space Grotesk', sans-serif; font-weight: 600; color: var(--text); font-size: 13px; }
+.badge {
+  display: inline-flex; align-items: center; padding: 3px 9px;
+  border-radius: 20px; font-size: 10px; font-weight: 600; letter-spacing: 0.04em;
+}
+.badge-green { background: rgba(16,185,129,0.12); color: #34d399; }
+.badge-red { background: rgba(239,68,68,0.12); color: #f87171; }
+.badge-yellow { background: rgba(245,158,11,0.12); color: #fbbf24; }
+
+/* Pagination */
+.pagination {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 14px 22px;
+  border-top: 1px solid var(--border);
+}
+.page-info { font-size: 12px; color: var(--muted); }
+.page-btns { display: flex; gap: 4px; }
+.page-btn {
+  width: 30px; height: 30px; border-radius: 7px;
+  background: transparent; border: 1px solid var(--border);
+  color: var(--muted2); font-size: 12px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s; font-family: inherit;
+}
+.page-btn:hover { border-color: var(--accent); color: var(--accent); }
+.page-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+.page-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* Sort indicator */
+.sort-icon { margin-left: 4px; opacity: 0.4; }
+.sort-icon.active { opacity: 1; }
+
+/* Horizontal bar chart */
+.hbar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.hbar-label { width: 88px; font-size: 11px; color: var(--muted2); text-align: right; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hbar-track { flex: 1; height: 8px; background: var(--surface3); border-radius: 4px; overflow: hidden; }
+.hbar-fill { height: 100%; border-radius: 4px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+.hbar-val { width: 50px; font-size: 11px; color: var(--muted); text-align: right; flex-shrink: 0; }
+
+/* Range bar */
+.range-row { display: flex; align-items: center; gap: 10px; margin-bottom: 9px; }
+.range-label { width: 88px; font-size: 11px; color: var(--muted2); text-align: right; flex-shrink: 0; }
+.range-track { flex: 1; height: 8px; background: var(--surface3); border-radius: 4px; position: relative; }
+.range-fill { position: absolute; top: 0; height: 100%; border-radius: 4px; }
+.range-vals { width: 100px; font-size: 10px; color: var(--muted); flex-shrink: 0; }
+
+/* Dot indicator */
+.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 5px; flex-shrink: 0; }
+
+/* Responsive */
+@media (max-width: 1100px) {
+  .kpi-row { grid-template-columns: repeat(3, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .kpi-row { grid-template-columns: 1fr 1fr; }
+  .main { padding: 16px; }
+  .header { padding: 0 16px; }
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+// ─── Data ────────────────────────────────────────────────────────────────────
+const MAKES_DATA = [
+  { make: 'Buick',       count: 126, minPrice: 19164, maxPrice: 30840, avgPrice: 25120, color: '#3b82f6' },
+  { make: 'Chevrolet',   count: 137, minPrice: 20495, maxPrice: 30840, avgPrice: 25800, color: '#22c55e' },
+  { make: 'Dodge',       count: 136, minPrice: 20125, maxPrice: 30855, avgPrice: 25600, color: '#f59e0b' },
+  { make: 'FIAT',        count: 153, minPrice: 25385, maxPrice: 30867, avgPrice: 28100, color: '#ef4444' },
+  { make: 'Ford',        count: 153, minPrice: 23995, maxPrice: 30865, avgPrice: 27400, color: '#8b5cf6' },
+  { make: 'Honda',       count: 153, minPrice: 26500, maxPrice: 30850, avgPrice: 28600, color: '#06b6d4' },
+  { make: 'Hyundai',     count: 142, minPrice: 22222, maxPrice: 30809, avgPrice: 26500, color: '#ec4899' },
+  { make: 'Jeep',        count: 134, minPrice: 19490, maxPrice: 30715, avgPrice: 24900, color: '#14b8a6' },
+  { make: 'Kia',         count: 135, minPrice: 21173, maxPrice: 30836, avgPrice: 25900, color: '#f97316' },
+  { make: 'MINI',        count: 152, minPrice: 26249, maxPrice: 30823, avgPrice: 28400, color: '#a3e635' },
+  { make: 'Mazda',       count: 135, minPrice: 22488, maxPrice: 30768, avgPrice: 26200, color: '#6366f1' },
+  { make: 'Mitsubishi',  count: 145, minPrice: 25034, maxPrice: 30800, avgPrice: 27800, color: '#84cc16' },
+  { make: 'Nissan',      count: 141, minPrice: 23936, maxPrice: 30362, avgPrice: 27100, color: '#10b981' },
+  { make: 'Subaru',      count: 156, minPrice: 29000, maxPrice: 29995, avgPrice: 29400, color: '#f43f5e' },
+  { make: 'Toyota',      count: 155, minPrice: 29561, maxPrice: 30500, avgPrice: 30000, color: '#0ea5e9' },
+  { make: 'Volkswagen',  count: 123, minPrice: 20800, maxPrice: 30700, avgPrice: 25500, color: '#d946ef' },
+];
+
+// Generate realistic sample listings
+const MODELS = {
+  Buick: ['Encore','Enclave','Envision'],
+  Chevrolet: ['Equinox','Traverse','Malibu','Colorado','Blazer'],
+  Dodge: ['Charger','Challenger','Durango','Journey'],
+  FIAT: ['500X','500L'],
+  Ford: ['Explorer','Escape','F-150','Edge','Mustang'],
+  Honda: ['CR-V','Civic','Accord','Pilot','HR-V'],
+  Hyundai: ['Tucson','Santa Fe','Elantra','Sonata'],
+  Jeep: ['Wrangler','Grand Cherokee','Cherokee','Compass'],
+  Kia: ['Sportage','Sorento','Telluride','Soul'],
+  MINI: ['Cooper','Countryman','Paceman'],
+  Mazda: ['CX-5','CX-30','Mazda3','Mazda6'],
+  Mitsubishi: ['Outlander','Eclipse Cross','Galant'],
+  Nissan: ['Altima','Rogue','Sentra','Murano'],
+  Subaru: ['Outback','Forester','Crosstrek','Impreza'],
+  Toyota: ['Camry','RAV4','Highlander','Corolla','Tacoma'],
+  Volkswagen: ['Jetta','Tiguan','Passat','Atlas'],
+};
+const DEALERS = ['AutoNation','CarMax','Carvana','DriveTime','Hertz Car Sales','Enterprise','Asbury','Penske'];
+const CITIES = ['Bronx, NY','Yonkers, NY','Newark, NJ','Jersey City, NJ','Hoboken, NJ','White Plains, NY','Stamford, CT','Brooklyn, NY'];
+const TRIMS = ['Base','SE','SEL','Sport','Premium','LX','EX','EX-L','Limited','Touring','GT'];
+
+function rand(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function seeded(seed) { let s = seed; return () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; }; }
+
+const rng = seeded(42);
+const LISTINGS = [];
+let id = 1;
+for (const m of MAKES_DATA) {
+  const models = MODELS[m.make];
+  for (let i = 0; i < m.count; i++) {
+    const model = models[Math.floor(rng() * models.length)];
+    const year = 2018 + Math.floor(rng() * 7);
+    const price = Math.round(m.minPrice + rng() * (m.maxPrice - m.minPrice));
+    const msrp = Math.round(price + (rng() - 0.45) * 4000);
+    const miles = Math.round(rng() * 80000);
+    const dist = Math.round(5 + rng() * 195);
+    const dealer = DEALERS[Math.floor(rng() * DEALERS.length)];
+    const city = CITIES[Math.floor(rng() * CITIES.length)];
+    const trim = TRIMS[Math.floor(rng() * TRIMS.length)];
+    LISTINGS.push({ id: id++, make: m.make, model, year, trim, price, msrp, miles, dist, dealer, city, color: m.color });
+  }
+}
+LISTINGS.sort(() => rng() - 0.5);
+
+// ─── Mini bar chart (horizontal) ─────────────────────────────────────────────
+function HBarChart({ data, valueKey, labelKey, colorKey, format }) {
+  const max = Math.max(...data.map(d => d[valueKey]));
+  return (
+    <div>
+      {data.map(d => (
+        <div key={d[labelKey]} className="hbar-row">
+          <div className="hbar-label" title={d[labelKey]}>{d[labelKey]}</div>
+          <div className="hbar-track">
+            <div className="hbar-fill" style={{ width: `${(d[valueKey]/max)*100}%`, background: d[colorKey] || 'var(--accent)' }} />
+          </div>
+          <div className="hbar-val">{format ? format(d[valueKey]) : d[valueKey]}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Price range chart ────────────────────────────────────────────────────────
+function RangeChart({ data }) {
+  const globalMin = Math.min(...data.map(d => d.minPrice));
+  const globalMax = Math.max(...data.map(d => d.maxPrice));
+  const span = globalMax - globalMin;
+  const fmt = v => `$${(v/1000).toFixed(0)}k`;
+  return (
+    <div>
+      {data.map(d => {
+        const left = ((d.minPrice - globalMin) / span) * 100;
+        const width = ((d.maxPrice - d.minPrice) / span) * 100;
+        return (
+          <div key={d.make} className="range-row">
+            <div className="range-label">{d.make}</div>
+            <div className="range-track">
+              <div className="range-fill" style={{ left: `${left}%`, width: `${width}%`, background: d.color, opacity: 0.85 }} />
+            </div>
+            <div className="range-vals">{fmt(d.minPrice)}–{fmt(d.maxPrice)}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Main App ─────────────────────────────────────────────────────────────────
+function App() {
+  const [search, setSearch] = useState('');
+  const [make, setMake] = useState('All');
+  const [maxPrice, setMaxPrice] = useState('');
+  const [sort, setSort] = useState('price_asc');
+  const [page, setPage] = useState(1);
+  const [sortCol, setSortCol] = useState('price');
+  const [sortDir, setSortDir] = useState('asc');
+  const PER_PAGE = 15;
+
+  const filtered = useMemo(() => {
+    let rows = [...LISTINGS];
+    if (search) {
+      const q = search.toLowerCase();
+      rows = rows.filter(r => `${r.make} ${r.model} ${r.dealer} ${r.city}`.toLowerCase().includes(q));
+    }
+    if (make !== 'All') rows = rows.filter(r => r.make === make);
+    if (maxPrice) rows = rows.filter(r => r.price <= Number(maxPrice));
+    rows.sort((a,b) => {
+      const av = a[sortCol], bv = b[sortCol];
+      if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+      return sortDir === 'asc' ? av - bv : bv - av;
+    });
+    return rows;
+  }, [search, make, maxPrice, sortCol, sortDir]);
+
+  const totalPages = Math.ceil(filtered.length / PER_PAGE);
+  const pageRows = filtered.slice((page-1)*PER_PAGE, page*PER_PAGE);
+
+  function handleSort(col) {
+    if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortCol(col); setSortDir('asc'); }
+    setPage(1);
+  }
+  function handleFilter() { setPage(1); }
+
+  const avgPrice = Math.round(filtered.reduce((s,r) => s+r.price, 0) / (filtered.length||1));
+  const avgMsrpDiff = Math.round(filtered.reduce((s,r) => s+(r.price-r.msrp), 0) / (filtered.length||1));
+  const avgDist = Math.round(filtered.reduce((s,r) => s+r.dist, 0) / (filtered.length||1));
+  const uniqueMakes = new Set(filtered.map(r => r.make)).size;
+
+  function SortIcon({ col }) {
+    if (sortCol !== col) return <span className="sort-icon">↕</span>;
+    return <span className="sort-icon active" style={{color:'var(--accent)'}}>{sortDir==='asc'?'↑':'↓'}</span>;
+  }
+
+  const fmtPrice = v => '$' + v.toLocaleString();
+  const fmtMiles = v => v.toLocaleString() + ' mi';
+
+  return (
+    <>
+      <header className="header">
+        <div className="header-brand">
+          <div className="header-icon">🚗</div>
+          <div>
+            <div className="header-title">Car Listings Dashboard</div>
+            <div className="header-sub">{LISTINGS.length.toLocaleString()} listings · Near ZIP 10451 · Up to 200 mi</div>
+          </div>
+        </div>
+        <div className="header-actions">
+          <button className="btn btn-ghost">↓ Template CSV</button>
+          <label className="btn btn-primary" style={{cursor:'pointer'}}>
+            ↑ Upload CSV
+            <input type="file" accept=".csv" style={{display:'none'}} />
+          </label>
+        </div>
+      </header>
+
+      <div className="main">
+        {/* KPI Cards */}
+        <div className="kpi-row">
+          <div className="kpi-card">
+            <div className="kpi-label">Listings Shown</div>
+            <div className="kpi-value">{filtered.length.toLocaleString()}</div>
+            <div className="kpi-sub">of {LISTINGS.length.toLocaleString()} total</div>
+            <div className="kpi-badge" style={{background:'rgba(59,130,246,0.1)'}}>📋</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-label">Avg Price</div>
+            <div className="kpi-value">{fmtPrice(avgPrice)}</div>
+            <div className="kpi-sub">Range: $19,164 – $30,867</div>
+            <div className="kpi-badge" style={{background:'rgba(6,182,212,0.1)'}}>💰</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-label">Avg vs MSRP</div>
+            <div className={`kpi-value ${avgMsrpDiff <= 0 ? 'green' : 'red'}`}>
+              {avgMsrpDiff <= 0 ? '-' : '+'}${Math.abs(avgMsrpDiff).toLocaleString()}
+            </div>
+            <div className="kpi-sub">{avgMsrpDiff <= 0 ? 'avg below MSRP' : 'avg above MSRP'}</div>
+            <div className="kpi-badge" style={{background:'rgba(16,185,129,0.1)'}}>📉</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-label">Makes</div>
+            <div className="kpi-value">{uniqueMakes}</div>
+            <div className="kpi-sub">unique brands</div>
+            <div className="kpi-badge" style={{background:'rgba(245,158,11,0.1)'}}>🏷️</div>
+          </div>
+          <div className="kpi-card">
+            <div className="kpi-label">Avg Distance</div>
+            <div className="kpi-value">{avgDist} <span style={{fontSize:'16px',fontWeight:500,color:'var(--muted2)'}}>mi</span></div>
+            <div className="kpi-sub">from ZIP 10451</div>
+            <div className="kpi-badge" style={{background:'rgba(139,92,246,0.1)'}}>📍</div>
+          </div>
+        </div>
+
+        {/* Charts */}
+        <div className="charts-row">
+          <div className="chart-card">
+            <div className="chart-title">Listings by Make</div>
+            <div className="chart-sub">Total inventory per brand</div>
+            <HBarChart data={[...MAKES_DATA].sort((a,b)=>b.count-a.count)} valueKey="count" labelKey="make" colorKey="color" />
+          </div>
+          <div className="chart-card">
+            <div className="chart-title">Price Range by Make</div>
+            <div className="chart-sub">Min to max listing price</div>
+            <RangeChart data={[...MAKES_DATA].sort((a,b)=>a.minPrice-b.minPrice)} />
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="filters-row">
+          <div className="filter-group">
+            <div className="filter-label">Search</div>
+            <input className="filter-input search" placeholder="Car, dealer, location…" value={search}
+              onChange={e => { setSearch(e.target.value); handleFilter(); }} />
+          </div>
+          <div className="filter-group">
+            <div className="filter-label">Make</div>
+            <select className="filter-select" value={make} onChange={e => { setMake(e.target.value); handleFilter(); }}
+              style={{minWidth:'130px'}}>
+              <option>All</option>
+              {MAKES_DATA.map(m => <option key={m.make}>{m.make}</option>)}
+            </select>
+          </div>
+          <div className="filter-group">
+            <div className="filter-label">Max Price</div>
+            <input className="filter-input" type="number" placeholder="e.g. 30000" value={maxPrice}
+              onChange={e => { setMaxPrice(e.target.value); handleFilter(); }} style={{width:'130px'}} />
+          </div>
+          <div className="filter-group">
+            <div className="filter-label">Sort by</div>
+            <select className="filter-select" value={`${sortCol}_${sortDir}`} style={{minWidth:'160px'}}
+              onChange={e => { const [c,d] = e.target.value.split('_'); setSortCol(c); setSortDir(d); setPage(1); }}>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+              <option value="year_desc">Year: Newest First</option>
+              <option value="year_asc">Year: Oldest First</option>
+              <option value="miles_asc">Mileage: Low to High</option>
+              <option value="dist_asc">Distance: Nearest First</option>
+            </select>
+          </div>
+          <div className="filter-divider"></div>
+          <button className="btn btn-ghost btn-clear" onClick={() => { setSearch(''); setMake('All'); setMaxPrice(''); setSortCol('price'); setSortDir('asc'); setPage(1); }}>Clear</button>
+          <div className="filter-count"><strong>{filtered.length.toLocaleString()}</strong> results</div>
+        </div>
+
+        {/* Table */}
+        <div className="table-card">
+          <div className="table-header">
+            <div className="table-header-title">All Listings</div>
+            <div style={{fontSize:'12px',color:'var(--muted)'}}>Page {page} of {totalPages || 1}</div>
+          </div>
+          <div className="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th onClick={() => handleSort('year')}>Year <SortIcon col="year" /></th>
+                  <th onClick={() => handleSort('make')}>Make / Model <SortIcon col="make" /></th>
+                  <th onClick={() => handleSort('trim')}>Trim <SortIcon col="trim" /></th>
+                  <th onClick={() => handleSort('price')}>Price <SortIcon col="price" /></th>
+                  <th>vs MSRP</th>
+                  <th onClick={() => handleSort('miles')}>Mileage <SortIcon col="miles" /></th>
+                  <th onClick={() => handleSort('dist')}>Distance <SortIcon col="dist" /></th>
+                  <th onClick={() => handleSort('dealer')}>Dealer <SortIcon col="dealer" /></th>
+                </tr>
+              </thead>
+              <tbody>
+                {pageRows.map(r => {
+                  const diff = r.price - r.msrp;
+                  const pct = ((diff/r.msrp)*100).toFixed(1);
+                  return (
+                    <tr key={r.id}>
+                      <td>{r.year}</td>
+                      <td className="car-name">
+                        <span className="dot" style={{background: r.color}}></span>
+                        {r.make} {r.model}
+                      </td>
+                      <td>{r.trim}</td>
+                      <td className="price">{fmtPrice(r.price)}</td>
+                      <td>
+                        <span className={`badge ${diff <= 0 ? 'badge-green' : diff < 1500 ? 'badge-yellow' : 'badge-red'}`}>
+                          {diff <= 0 ? '−' : '+'}${Math.abs(diff).toLocaleString()} ({diff<=0?'-':'+'}{Math.abs(pct)}%)
+                        </span>
+                      </td>
+                      <td>{fmtMiles(r.miles)}</td>
+                      <td>{r.dist} mi</td>
+                      <td>{r.dealer}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <div className="pagination">
+            <div className="page-info">Showing {((page-1)*PER_PAGE)+1}–{Math.min(page*PER_PAGE, filtered.length)} of {filtered.length.toLocaleString()}</div>
+            <div className="page-btns">
+              <button className="page-btn" disabled={page===1} onClick={() => setPage(1)}>«</button>
+              <button className="page-btn" disabled={page===1} onClick={() => setPage(p=>p-1)}>‹</button>
+              {(() => {
+                const total = totalPages || 1;
+                const start = Math.max(1, Math.min(page - 2, total - 4));
+                const end = Math.min(total, start + 4);
+                return Array.from({length: end - start + 1}, (_,i) => start + i).map(p =>
+                  <button key={`pg-${p}`} className={`page-btn ${page===p?'active':''}`} onClick={() => setPage(p)}>{p}</button>
+                );
+              })()}
+              <button className="page-btn" disabled={page===totalPages||totalPages===0} onClick={() => setPage(p=>p+1)}>›</button>
+              <button className="page-btn" disabled={page===totalPages||totalPages===0} onClick={() => setPage(totalPages)}>»</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
